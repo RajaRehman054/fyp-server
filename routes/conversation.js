@@ -1,6 +1,6 @@
 const router = require('express').Router();
-var Conversation = require('../models/conversation1');
-const Message = require('../models/messages1');
+var Conversation = require('../models/conversation');
+const Message = require('../models/messages');
 
 // new converstion
 router.post('/', async (req, res) => {
@@ -17,7 +17,6 @@ router.post('/', async (req, res) => {
 });
 
 //get conv of a user
-
 router.get('/:userId', async (req, res) => {
 	try {
 		const conversation = await Conversation.find({
@@ -30,7 +29,6 @@ router.get('/:userId', async (req, res) => {
 });
 
 //add
-
 router.post('/newmessage', async (req, res) => {
 	const newMessage = new Message(req.body);
 
@@ -43,7 +41,6 @@ router.post('/newmessage', async (req, res) => {
 });
 
 //get
-
 router.get('/getmessages/:conversationId', async (req, res) => {
 	try {
 		const messages = await Message.find({

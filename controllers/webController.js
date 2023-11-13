@@ -12,7 +12,7 @@ var Video = require('../models/video');
 var Bid = require('../models/bidding');
 var User = require('../models/user');
 var Posting = require('../models/posting');
-var Conversation1 = require('../models/conversation1');
+var Conversation = require('../models/conversation');
 var Notification = require('../models/notification');
 
 var pushNotification = require('../utils/pushNotifications');
@@ -224,11 +224,11 @@ exports.acceptRequests = asyncHandler(async (req, res) => {
 			wallet: -posting.price,
 		},
 	});
-	let prevConv = await Conversation1.findOne({
+	let prevConv = await Conversation.findOne({
 		members: { $all: [req.user.id, req.params.sid] },
 	});
 	if (!prevConv) {
-		const newConversation = new Conversation1({
+		const newConversation = new Conversation({
 			members: [req.user.id, req.params.sid],
 		});
 		await newConversation.save();
