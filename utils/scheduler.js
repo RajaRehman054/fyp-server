@@ -20,7 +20,7 @@ exports.expireBid = async () => {
 					$inc: { wallet: document.current_amount, sales: 1 },
 				});
 				await User.findByIdAndUpdate(document.current_highest, {
-					$inc: { wallet: -document.current_amount, bought: 1 },
+					$inc: { bought: 1 },
 				});
 				await Video.findByIdAndUpdate(document.video, {
 					owner: document.current_highest,

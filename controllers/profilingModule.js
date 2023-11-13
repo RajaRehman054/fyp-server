@@ -190,6 +190,10 @@ exports.updateWalletInc = asyncHandler(async (req, res) => {
 			wallet: req.body.amount,
 		},
 	});
+	await Transaction.create({
+		amount: req.body.amount,
+		user: req.user.id,
+	});
 	res.status(204).json();
 });
 
