@@ -14,6 +14,7 @@ var ErrorHandler = require('../utils/error');
 var User = require('../models/user');
 var Otp = require('../models/otp');
 var Posting = require('../models/posting');
+var Notification = require('../models/notification');
 
 exports.register = async (req, res, next) => {
 	var exists = await User.findOne({ email: req.body.email });
@@ -227,6 +228,7 @@ exports.removeFollower = asyncHandler(async (req, res, next) => {
 });
 
 exports.addRequests = asyncHandler(async (req, res) => {
+	let posting = await Posting.findById(req.params.id);
 	if (req.user.hirer !== null) {
 		return res
 			.status(400)
@@ -234,6 +236,10 @@ exports.addRequests = asyncHandler(async (req, res) => {
 	}
 	await Posting.findByIdAndUpdate(req.params.id, {
 		$push: { requests: { user: req.user.id } },
+	});
+	await Notification.create({
+		user: posting.creator,
+		message: `You have received the job request for ${posting.details} of ${requestor.username}`,
 	});
 	res.status(204).json({});
 });

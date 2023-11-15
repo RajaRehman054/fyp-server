@@ -54,3 +54,29 @@ exports.recommendationNotification = async ids => {
 		console.log('Error is:', error);
 	}
 };
+
+exports.acceptedJobRequest = async (job, ids) => {
+	try {
+		var pushMessage = {
+			registration_ids: ids,
+			content_available: true,
+			mutable_content: true,
+			notification: {
+				title: 'Congratulations!',
+				body: `Your job request for ${job} has been accepted.`,
+				icon: 'myicon',
+				sound: 'mySound',
+			},
+		};
+
+		fcm.send(pushMessage, (err, response) => {
+			if (err) {
+				console.log('Something has gone wrong!', err);
+			} else {
+				console.log('Successfully sent with response: ', response);
+			}
+		});
+	} catch (error) {
+		console.log('Error is:', error);
+	}
+};

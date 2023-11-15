@@ -205,13 +205,37 @@ exports.stopReceivingRequests = asyncHandler(async (req, res) => {
 });
 
 exports.acceptRequests = asyncHandler(async (req, res) => {
-	let posting = await Posting.findById(req.params.id);
 	if (posting.price > req.user.wallet) {
 		return res.status(400).json({ message: 'Not enough balance.' });
 	}
+	let posting = await Posting.findById(req.params.id);
+	let requestor = await User.findById(req.params.sid);
 	await Posting.updateOne(
 		{ _id: req.params.id, 'requests.user': req.params.sid },
 		{ $set: { 'requests.$.accept': true } }
+	);
+	requestor.fcm !== ''
+		? await pushNotification.acceptedJobRequest(posting.details, [
+				requestor.fcm,
+		  ])
+		: null;
+	await Posting.updateMany(
+		{
+			requests: {
+				$elemMatch: {
+					user: req.params.sid,
+					accept: false,
+				},
+			},
+		},
+		{
+			$pull: {
+				requests: {
+					user: req.params.sid,
+					accept: false,
+				},
+			},
+		}
 	);
 	await User.findByIdAndUpdate(req.params.sid, {
 		hirer: req.user.id,
@@ -223,6 +247,10 @@ exports.acceptRequests = asyncHandler(async (req, res) => {
 		$inc: {
 			wallet: -posting.price,
 		},
+	});
+	await Notification.create({
+		user: req.user._id,
+		message: `You have accepted the job request for ${posting.details} of ${requestor.username}`,
 	});
 	let prevConv = await Conversation.findOne({
 		members: { $all: [req.user.id, req.params.sid] },
