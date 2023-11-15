@@ -9,7 +9,7 @@ router.get(
 	paymentController.getTransactionHistory
 );
 router.post(
-	'/payment/intent/:amount',
+	'/intent/:amount',
 	authenticate.verifyUser,
 	paymentController.createPayment
 );

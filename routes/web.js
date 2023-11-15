@@ -50,7 +50,7 @@ router.patch(
 //TODO: Enhancement
 router.get(
 	'/video/enhance',
-	// authenticate.verifyUser,
+	authenticate.verifyUser,
 	videoHandler.enhanceVideo
 );
 

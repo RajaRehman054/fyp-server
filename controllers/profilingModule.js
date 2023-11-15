@@ -1,3 +1,4 @@
+require('dotenv').config();
 var express = require('express');
 var passport = require('passport');
 var bodyParser = require('body-parser');
@@ -15,6 +16,7 @@ var User = require('../models/user');
 var Otp = require('../models/otp');
 var Posting = require('../models/posting');
 var Notification = require('../models/notification');
+var Transaction = require('../models/transaction');
 
 exports.register = async (req, res, next) => {
 	var exists = await User.findOne({ email: req.body.email });
@@ -186,16 +188,17 @@ exports.getPicture = asyncHandler(async (req, res, next) => {
 });
 
 exports.updateWalletInc = asyncHandler(async (req, res) => {
-	await User.findByIdAndUpdate(req.user.id, {
+	console.log('here');
+	await User.findByIdAndUpdate(req.params.user, {
 		$inc: {
-			wallet: req.body.amount,
+			wallet: req.params.amount,
 		},
 	});
 	await Transaction.create({
-		amount: req.body.amount,
-		user: req.user.id,
+		amount: req.params.amount,
+		user: req.params.user,
 	});
-	res.status(204).json();
+	res.redirect(process.env.CLIENT_URL);
 });
 
 exports.updateWalletDec = asyncHandler(async (req, res) => {
