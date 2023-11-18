@@ -17,6 +17,7 @@ var bidSchema = new Schema(
 				{
 					user: { type: mongoose.Types.ObjectId, ref: 'User' },
 					amount: { type: Number },
+					paid: { type: Boolean, default: false },
 				},
 			],
 		},

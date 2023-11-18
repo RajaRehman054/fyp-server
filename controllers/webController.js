@@ -106,25 +106,26 @@ exports.createBid = asyncHandler(async (req, res) => {
 	res.status(201).json({ message: 'Bid created' });
 });
 
-exports.updateBid = asyncHandler(async (req, res) => {
+exports.updateBid = async (req, res) => {
 	let bid = await Bid.findById(req.params.id);
 	let data = await User.findById(bid.original_owner);
 	if (req.body.amount <= bid.current_amount) {
 		return res.status(400).json({ success: false });
 	}
-	let temp = [];
+	await Notification.create({
+		user: bid.current_highest,
+		message: `You have been outbid on a video of ${data.username}`,
+	});
 	for (let index = 0; index < bid.list.length; index++) {
-		if (temp.indexOf(bid.list[index].user) !== -1) {
-			continue;
+		if (!bid.list[index].paid) {
+			await User.findByIdAndUpdate(bid.list[index].user, {
+				$inc: { wallet: bid.list[index].amount },
+			});
+			await Bid.updateOne(
+				{ _id: req.params.id, 'list._id': bid.list[index]._id },
+				{ $set: { 'list.$.paid': true } }
+			);
 		}
-		temp.push(bid.list[index].user);
-		await User.findByIdAndUpdate(bid.list[index].user, {
-			$inc: { wallet: bid.list[index].amount },
-		});
-		await Notification.create({
-			user: bid.list[index].user,
-			message: `You have been outbid on a video of ${data.username}`,
-		});
 	}
 	await User.findByIdAndUpdate(req.user._id, {
 		$inc: { wallet: -req.body.amount },
@@ -135,7 +136,7 @@ exports.updateBid = asyncHandler(async (req, res) => {
 		$push: { list: { user: req.user.id, amount: req.body.amount } },
 	});
 	res.status(201).json({ message: 'bid added' });
-});
+};
 
 exports.getInvolvedBids = asyncHandler(async (req, res) => {
 	let data = [];
@@ -279,7 +280,9 @@ exports.acceptRequests = asyncHandler(async (req, res) => {
 
 //? Notifications
 exports.getNotifications = asyncHandler(async (req, res) => {
-	var notifications = await Notification.find({ user: req.user._id });
+	var notifications = await Notification.find({ user: req.user._id }).sort({
+		createdAt: -1,
+	});
 	res.status(200).json(notifications);
 });
 
