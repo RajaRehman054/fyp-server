@@ -22,10 +22,6 @@ exports.expireBid = async () => {
 				await User.findByIdAndUpdate(document.current_highest, {
 					$inc: { bought: 1 },
 				});
-				await Video.findByIdAndUpdate(document.video, {
-					owner: document.current_highest,
-					bought: true,
-				});
 			}
 		});
 	});
