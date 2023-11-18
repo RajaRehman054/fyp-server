@@ -48,11 +48,22 @@ router.patch(
 	webController.acceptRequests
 );
 
-//TODO: Enhancement
+//TODO: Enhancement and filters
 router.get(
 	'/video/enhance',
 	authenticate.verifyUser,
 	videoHandler.enhanceVideo
+);
+router.get('/video/rotate', authenticate.verifyUser, videoHandler.rotateVideo);
+router.get(
+	'/video/blackwhite',
+	authenticate.verifyUser,
+	videoHandler.blackAndWhiteVideo
+);
+router.get(
+	'/video/noaudio',
+	authenticate.verifyUser,
+	videoHandler.removeAudioFromVideo
 );
 
 module.exports = router;

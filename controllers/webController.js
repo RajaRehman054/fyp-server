@@ -106,7 +106,7 @@ exports.createBid = asyncHandler(async (req, res) => {
 	res.status(201).json({ message: 'Bid created' });
 });
 
-exports.updateBid = async (req, res) => {
+exports.updateBid = asyncHandler(async (req, res) => {
 	let bid = await Bid.findById(req.params.id);
 	let data = await User.findById(bid.original_owner);
 	if (req.body.amount <= bid.current_amount) {
@@ -136,7 +136,7 @@ exports.updateBid = async (req, res) => {
 		$push: { list: { user: req.user.id, amount: req.body.amount } },
 	});
 	res.status(201).json({ message: 'bid added' });
-};
+});
 
 exports.getInvolvedBids = asyncHandler(async (req, res) => {
 	let data = [];
