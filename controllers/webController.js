@@ -17,6 +17,10 @@ var Notification = require('../models/notification');
 
 var pushNotification = require('../utils/pushNotifications');
 
+const removeDuplicates = array => {
+	return array.filter((value, index) => array.indexOf(value) === index);
+};
+
 exports.register = async (req, res, next) => {
 	var exists = await User.findOne({ email: req.body.email });
 	if (exists) {
@@ -84,6 +88,9 @@ exports.createBid = asyncHandler(async (req, res) => {
 		expires: Date.now() + 7200000,
 		original_owner: owner.owner,
 	};
+	await Video.findByIdAndUpdate(req.body.video, {
+		bought: true,
+	});
 	await User.findByIdAndUpdate(req.user._id, {
 		$inc: { wallet: -req.body.amount },
 	});
@@ -101,15 +108,21 @@ exports.createBid = asyncHandler(async (req, res) => {
 
 exports.updateBid = asyncHandler(async (req, res) => {
 	let bid = await Bid.findById(req.params.id);
+	let data = await User.findById(bid.original_owner);
 	if (req.body.amount <= bid.current_amount) {
 		return res.status(400).json({ success: false });
 	}
+	let temp = [];
 	for (let index = 0; index < bid.list.length; index++) {
-		await User.findByIdAndUpdate(list[index].user, {
-			$inc: { wallet: list[index].amount },
+		if (temp.indexOf(bid.list[index].user) !== -1) {
+			continue;
+		}
+		temp.push(bid.list[index].user);
+		await User.findByIdAndUpdate(bid.list[index].user, {
+			$inc: { wallet: bid.list[index].amount },
 		});
 		await Notification.create({
-			user: list[index].user,
+			user: bid.list[index].user,
 			message: `You have been outbid on a video of ${data.username}`,
 		});
 	}
@@ -268,4 +281,26 @@ exports.acceptRequests = asyncHandler(async (req, res) => {
 exports.getNotifications = asyncHandler(async (req, res) => {
 	var notifications = await Notification.find({ user: req.user._id });
 	res.status(200).json(notifications);
+});
+
+//?Search
+exports.searchVideos = asyncHandler(async (req, res) => {
+	if (req.query.type === 'username') {
+		var users = await User.find({
+			username: { $regex: new RegExp(req.query.value, 'i') },
+		}).select('_id');
+		console.log(users);
+		const videos = await Video.find({
+			owner: { $in: users },
+			bought: false,
+		}).populate('owner');
+		return res.status(200).json(videos);
+	}
+	var videos = await Video.find({
+		[req.query.type]: {
+			$regex: new RegExp(req.query.value, 'i'),
+		},
+		bought: false,
+	}).populate('owner');
+	res.status(200).json(videos);
 });

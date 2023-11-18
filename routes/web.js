@@ -20,6 +20,7 @@ router.get(
 	authenticate.verifyUser,
 	webController.getNotifications
 );
+router.get('/videos', authenticate.verifyUser, webController.searchVideos);
 router.post('/bid/create', authenticate.verifyUser, webController.createBid);
 router.post('/register', webController.register);
 router.post('/login', passport.authenticate('local'), webController.signIn);
