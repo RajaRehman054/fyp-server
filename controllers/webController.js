@@ -204,32 +204,54 @@ exports.createJobPosting = asyncHandler(async (req, res) => {
 	res.status(201).json({ message: 'Job Posting created successfully.' });
 });
 
-exports.getAllJobs = asyncHandler(async (req, res) => {
-	var jobs = await Posting.find({ creator: req.user.id }).populate(
-		'creator requests.user'
-	);
+exports.getAllActiveJobs = asyncHandler(async (req, res) => {
+	var jobs = await Posting.find({
+		creator: req.user.id,
+		ended: false,
+	}).populate('creator requests.user');
+	res.status(200).json({ jobs });
+});
+
+exports.getAllPastJobs = asyncHandler(async (req, res) => {
+	var jobs = await Posting.find({
+		creator: req.user.id,
+		ended: true,
+	}).populate('creator requests.user');
 	res.status(200).json({ jobs });
 });
 
 exports.stopReceivingRequests = asyncHandler(async (req, res) => {
+	const post = await Posting.findById(req.params.id);
 	await Posting.findByIdAndUpdate(req.params.id, {
-		receiving: false,
+		receiving: post.receiving ? false : true,
 	});
 	res.status(204).json({});
 });
 
-exports.acceptRequests = asyncHandler(async (req, res) => {
+exports.acceptRequests = async (req, res) => {
+	if (req.query.reject === 'true') {
+		await Posting.updateOne(
+			{ _id: req.params.id, 'requests.user': req.params.sid },
+			{ $set: { 'requests.$.accept': false, 'requests.$.action': true } }
+		);
+		requestor.fcm !== ''
+			? await pushNotification.acceptedJobRequest(true, posting.details, [
+					requestor.fcm,
+			  ])
+			: null;
+		return res.status(204).json({});
+	}
+	let posting = await Posting.findById(req.params.id);
 	if (posting.price > req.user.wallet) {
 		return res.status(400).json({ message: 'Not enough balance.' });
 	}
-	let posting = await Posting.findById(req.params.id);
 	let requestor = await User.findById(req.params.sid);
 	await Posting.updateOne(
 		{ _id: req.params.id, 'requests.user': req.params.sid },
-		{ $set: { 'requests.$.accept': true } }
+		{ $set: { 'requests.$.accept': true, 'requests.$.action': true } }
 	);
 	requestor.fcm !== ''
-		? await pushNotification.acceptedJobRequest(posting.details, [
+		? await pushNotification.acceptedJobRequest(false, posting.details, [
 				requestor.fcm,
 		  ])
 		: null;
@@ -276,6 +298,22 @@ exports.acceptRequests = asyncHandler(async (req, res) => {
 		await newConversation.save();
 	}
 	res.status(204).json({});
+};
+
+exports.deleteJob = asyncHandler(async (req, res) => {
+	let posting = await Posting.findById(req.params.id);
+	if (posting.requests.length > 0) {
+		for (let index = 0; index < posting.requests.length; index++) {
+			if (posting.requests[index].accept === true) {
+				return res.status(400).json({
+					message:
+						'Job cannot be deleted as there is an accepted request.',
+				});
+			}
+		}
+	}
+	await Posting.findByIdAndDelete(req.params.id);
+	res.status(200).json({ message: 'Job deleted successfully.' });
 });
 
 //? Notifications

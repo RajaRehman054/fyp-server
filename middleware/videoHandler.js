@@ -45,7 +45,7 @@ exports.enhanceVideo = async (req, res, next) => {
 	}
 };
 
-exports.enhanceVideo = async (req, res, next) => {
+exports.rotateVideo = async (req, res, next) => {
 	try {
 		const uniqueName = `${Date.now()}-${Math.round(
 			Math.random() * 1e9

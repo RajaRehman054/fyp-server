@@ -31,7 +31,8 @@ router.patch(
 );
 
 //TODO: Job Posting
-router.get('/jobs', authenticate.verifyUser, webController.getAllJobs);
+router.get('/jobs', authenticate.verifyUser, webController.getAllActiveJobs);
+router.get('/jobs/past', authenticate.verifyUser, webController.getAllPastJobs);
 router.post(
 	'/job/create',
 	authenticate.verifyUser,
@@ -46,6 +47,11 @@ router.patch(
 	'/job/accept/:id/:sid',
 	authenticate.verifyUser,
 	webController.acceptRequests
+);
+router.delete(
+	'/job/delete/:id',
+	authenticate.verifyUser,
+	webController.deleteJob
 );
 
 //TODO: Enhancement and filters

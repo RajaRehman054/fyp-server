@@ -242,7 +242,7 @@ exports.addRequests = asyncHandler(async (req, res) => {
 	});
 	await Notification.create({
 		user: posting.creator,
-		message: `You have received the job request for ${posting.details} of ${requestor.username}`,
+		message: `You have received the job request for ${posting.details} of ${req.user.username}`,
 	});
 	res.status(204).json({});
 });

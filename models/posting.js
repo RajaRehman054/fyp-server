@@ -20,6 +20,7 @@ var postingSchema = new Schema(
 						type: Boolean,
 						default: false,
 					},
+					action: { type: Boolean, default: false },
 				},
 			],
 			default: [],

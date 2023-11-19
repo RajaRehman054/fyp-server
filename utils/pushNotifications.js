@@ -55,15 +55,17 @@ exports.recommendationNotification = async ids => {
 	}
 };
 
-exports.acceptedJobRequest = async (job, ids) => {
+exports.acceptedJobRequest = async (reject, job, ids) => {
 	try {
 		var pushMessage = {
 			registration_ids: ids,
 			content_available: true,
 			mutable_content: true,
 			notification: {
-				title: 'Congratulations!',
-				body: `Your job request for ${job} has been accepted.`,
+				title: reject ? 'Important! ' : 'Congratulations!',
+				body: reject
+					? `Your job request for ${job} has been rejected.`
+					: `Your job request for ${job} has been accepted.`,
 				icon: 'myicon',
 				sound: 'mySound',
 			},
