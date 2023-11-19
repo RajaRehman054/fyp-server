@@ -6,6 +6,7 @@ var router = express.Router();
 var nodemailer = require('nodemailer');
 var path = require('path');
 var fs = require('fs');
+var mongoose = require('mongoose');
 router.use(bodyParser.json());
 
 var authenticate = require('../middleware/auth');
@@ -232,6 +233,17 @@ exports.removeFollower = asyncHandler(async (req, res, next) => {
 
 exports.addRequests = asyncHandler(async (req, res) => {
 	let posting = await Posting.findById(req.params.id);
+	if (posting.requests.length > 0) {
+		const userId = new mongoose.Types.ObjectId(req.user.id);
+		for (let index = 0; index < posting.requests.length; index++) {
+			console.log(posting.requests[index].user, userId);
+			if (userId.equals(posting.requests[index].user)) {
+				return res
+					.status(409)
+					.json({ message: 'You have already applied for the job' });
+			}
+		}
+	}
 	if (req.user.hirer !== null) {
 		return res
 			.status(400)
