@@ -231,6 +231,7 @@ exports.removeFollower = asyncHandler(async (req, res, next) => {
 	res.status(204).json({});
 });
 
+//TODO: Job Posting
 exports.addRequests = asyncHandler(async (req, res) => {
 	let posting = await Posting.findById(req.params.id);
 	if (posting.requests.length > 0) {
@@ -257,4 +258,24 @@ exports.addRequests = asyncHandler(async (req, res) => {
 		message: `You have received the job request for ${posting.details} of ${req.user.username}`,
 	});
 	res.status(204).json({});
+});
+
+exports.getCurrentJobs = asyncHandler(async (req, res) => {
+	let postings = await Posting.find({
+		ended: false,
+		receiving: true,
+		'requests.user': {
+			$nin: [new mongoose.Types.ObjectId(req.user.id)],
+		},
+	});
+	res.status(200).json(postings);
+});
+
+exports.getAppliedJobs = asyncHandler(async (req, res) => {
+	let postings = await Posting.find({
+		ended: false,
+		receiving: true,
+		'requests.user': new mongoose.Types.ObjectId(req.user.id),
+	});
+	res.status(200).json(postings);
 });

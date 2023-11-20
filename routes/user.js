@@ -75,4 +75,11 @@ router.get('/', async (req, res) => {
 	}
 });
 
+//TODO: postings
+router.get('/jobs', authenticate.verifyUser, profilingModule.getCurrentJobs);
+router.get(
+	'/jobs/applied',
+	authenticate.verifyUser,
+	profilingModule.getAppliedJobs
+);
 module.exports = router;
