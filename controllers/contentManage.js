@@ -8,8 +8,9 @@ var path = require('path');
 var asyncHandler = require('../middleware/asyncHandler');
 var Video = require('../models/video');
 var Bid = require('../models/bidding');
+var User = require('../models/user');
 
-exports.createVideo = asyncHandler(async (req, res, next) => {
+exports.createVideo = async (req, res, next) => {
 	const video = await Video.create({
 		owner: req.user.hirer !== null ? req.user.hirer : req.user._id,
 		description: req.query.desc,
@@ -21,7 +22,7 @@ exports.createVideo = asyncHandler(async (req, res, next) => {
 	});
 	req.video = video;
 	next();
-});
+};
 
 exports.uploadVideo = asyncHandler(async (req, res) => {
 	await Video.findByIdAndUpdate(req.video._id, {
