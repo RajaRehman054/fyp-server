@@ -67,12 +67,12 @@ exports.signIn = asyncHandler(async (req, res, next) => {
 });
 
 exports.getTopCreators = asyncHandler(async (req, res) => {
-	const users = await User.find({ buyer: false })
-		.sort({ created_videos: -1 })
-		.limit(3);
-	const channels = await User.find({ buyer: true })
-		.sort({ bought: -1 })
-		.limit(3);
+	const users = await User.find({ buyer: false }).sort({
+		created_videos: -1,
+	});
+
+	const channels = await User.find({ buyer: true }).sort({ bought: -1 });
+
 	res.status(200).json({ users, channels });
 });
 
@@ -98,12 +98,10 @@ exports.createBid = asyncHandler(async (req, res) => {
 	data.fcm !== ''
 		? await pushNotification.startedBidNotification([data.fcm])
 		: null;
-	if (req.user.notfication && req.user.notification_bid) {
-		await Notification.create({
-			user: req.user._id,
-			message: `You have started a bidding war on video of ${data.username}`,
-		});
-	}
+	await Notification.create({
+		user: req.user._id,
+		message: `You have started a bidding war on video of ${data.username}`,
+	});
 	await Bid.create(newBid);
 	res.status(201).json({ message: 'Bid created' });
 });
@@ -114,12 +112,10 @@ exports.updateBid = asyncHandler(async (req, res) => {
 	if (req.body.amount <= bid.current_amount) {
 		return res.status(400).json({ success: false });
 	}
-	if (req.user.notfication && req.user.notification_bid) {
-		await Notification.create({
-			user: bid.current_highest,
-			message: `You have been outbid on a video of ${data.username}`,
-		});
-	}
+	await Notification.create({
+		user: bid.current_highest,
+		message: `You have been outbid on a video of ${data.username}`,
+	});
 	for (let index = 0; index < bid.list.length; index++) {
 		if (!bid.list[index].paid) {
 			await User.findByIdAndUpdate(bid.list[index].user, {
@@ -288,12 +284,10 @@ exports.acceptRequests = async (req, res) => {
 			wallet: -posting.price,
 		},
 	});
-	if (req.user.notfication) {
-		await Notification.create({
-			user: req.user._id,
-			message: `You have accepted the job request for ${posting.details} of ${requestor.username}`,
-		});
-	}
+	await Notification.create({
+		user: req.user._id,
+		message: `You have accepted the job request for ${posting.details} of ${requestor.username}`,
+	});
 	let prevConv = await Conversation.findOne({
 		members: { $all: [req.user.id, req.params.sid] },
 	});
@@ -345,6 +339,7 @@ exports.searchVideos = asyncHandler(async (req, res) => {
 		var users = await User.find({
 			username: { $regex: new RegExp(req.query.value, 'i') },
 		}).select('_id');
+		console.log(users);
 		const videos = await Video.find({
 			owner: { $in: users },
 			bought: false,
