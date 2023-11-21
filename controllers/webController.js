@@ -17,10 +17,6 @@ var Notification = require('../models/notification');
 
 var pushNotification = require('../utils/pushNotifications');
 
-const removeDuplicates = array => {
-	return array.filter((value, index) => array.indexOf(value) === index);
-};
-
 exports.register = async (req, res, next) => {
 	var exists = await User.findOne({ email: req.body.email });
 	if (exists) {
