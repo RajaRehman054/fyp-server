@@ -29,6 +29,11 @@ router.patch(
 	authenticate.verifyUser,
 	webController.updateBid
 );
+router.patch(
+	'/notification/setting',
+	authenticate.verifyUser,
+	webController.changeNotificationSettings
+);
 
 //TODO: Job Posting
 router.get('/jobs', authenticate.verifyUser, webController.getAllActiveJobs);

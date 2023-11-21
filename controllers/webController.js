@@ -98,10 +98,12 @@ exports.createBid = asyncHandler(async (req, res) => {
 	data.fcm !== ''
 		? await pushNotification.startedBidNotification([data.fcm])
 		: null;
-	await Notification.create({
-		user: req.user._id,
-		message: `You have started a bidding war on video of ${data.username}`,
-	});
+	if (req.user.notfication && req.user.notification_bid) {
+		await Notification.create({
+			user: req.user._id,
+			message: `You have started a bidding war on video of ${data.username}`,
+		});
+	}
 	await Bid.create(newBid);
 	res.status(201).json({ message: 'Bid created' });
 });
@@ -112,10 +114,12 @@ exports.updateBid = asyncHandler(async (req, res) => {
 	if (req.body.amount <= bid.current_amount) {
 		return res.status(400).json({ success: false });
 	}
-	await Notification.create({
-		user: bid.current_highest,
-		message: `You have been outbid on a video of ${data.username}`,
-	});
+	if (req.user.notfication && req.user.notification_bid) {
+		await Notification.create({
+			user: bid.current_highest,
+			message: `You have been outbid on a video of ${data.username}`,
+		});
+	}
 	for (let index = 0; index < bid.list.length; index++) {
 		if (!bid.list[index].paid) {
 			await User.findByIdAndUpdate(bid.list[index].user, {
@@ -284,10 +288,12 @@ exports.acceptRequests = async (req, res) => {
 			wallet: -posting.price,
 		},
 	});
-	await Notification.create({
-		user: req.user._id,
-		message: `You have accepted the job request for ${posting.details} of ${requestor.username}`,
-	});
+	if (req.user.notfication) {
+		await Notification.create({
+			user: req.user._id,
+			message: `You have accepted the job request for ${posting.details} of ${requestor.username}`,
+		});
+	}
 	let prevConv = await Conversation.findOne({
 		members: { $all: [req.user.id, req.params.sid] },
 	});
@@ -324,13 +330,21 @@ exports.getNotifications = asyncHandler(async (req, res) => {
 	res.status(200).json(notifications);
 });
 
+exports.changeNotificationSettings = asyncHandler(async (req, res) => {
+	await User.findByIdAndUpdate(req.user.id, {
+		notification: req.body.notification,
+		notification_bid: req.body.notification_bid,
+		notification_payment: req.body.notification_payment,
+	});
+	res.status(204).json({});
+});
+
 //?Search
 exports.searchVideos = asyncHandler(async (req, res) => {
 	if (req.query.type === 'username') {
 		var users = await User.find({
 			username: { $regex: new RegExp(req.query.value, 'i') },
 		}).select('_id');
-		console.log(users);
 		const videos = await Video.find({
 			owner: { $in: users },
 			bought: false,

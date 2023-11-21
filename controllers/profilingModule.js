@@ -76,6 +76,16 @@ exports.getUser = asyncHandler(async (req, res) => {
 	res.status(200).json({ user });
 });
 
+exports.getOtherUser = asyncHandler(async (req, res) => {
+	const userId = req.query.userId;
+	const username = req.query.username;
+	const user = userId
+		? await User.findById(userId)
+		: await User.findOne({ username: username });
+	const { password, updatedAt, ...other } = user._doc;
+	res.status(200).json(other);
+});
+
 exports.getOtp = asyncHandler(async (req, res, next) => {
 	var exists = await User.findOne({ email: req.params.email });
 
@@ -237,7 +247,6 @@ exports.addRequests = asyncHandler(async (req, res) => {
 	if (posting.requests.length > 0) {
 		const userId = new mongoose.Types.ObjectId(req.user.id);
 		for (let index = 0; index < posting.requests.length; index++) {
-			console.log(posting.requests[index].user, userId);
 			if (userId.equals(posting.requests[index].user)) {
 				return res
 					.status(409)
@@ -253,10 +262,13 @@ exports.addRequests = asyncHandler(async (req, res) => {
 	await Posting.findByIdAndUpdate(req.params.id, {
 		$push: { requests: { user: req.user.id } },
 	});
-	await Notification.create({
-		user: posting.creator,
-		message: `You have received the job request for ${posting.details} of ${req.user.username}`,
-	});
+	let notifier = await User.findById(posting.creator);
+	if (notifier.notfication) {
+		await Notification.create({
+			user: posting.creator,
+			message: `You have received the job request for ${posting.details} of ${req.user.username}`,
+		});
+	}
 	res.status(204).json({});
 });
 

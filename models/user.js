@@ -63,6 +63,9 @@ var User = new Schema({
 	videos_created: { type: Number, default: 0 },
 	bought: { type: Number, default: 0 },
 	hirer: { type: mongoose.Types.ObjectId, ref: 'User', default: null },
+	notification: { type: Boolean, default: true },
+	notification_bid: { type: Boolean, default: true },
+	notification_payment: { type: Boolean, default: true },
 });
 User.plugin(passportLocalMongoose);
 
