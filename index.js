@@ -51,6 +51,7 @@ app.use(passport.session());
 //?Socket Start
 let users = [];
 const addUser = (userId, socketId) => {
+	users = users.filter(user => user.userId !== userId);
 	!users.some(user => user.userId === userId) &&
 		users.push({ userId, socketId });
 };
@@ -63,6 +64,7 @@ const getUser = userId => {
 io.on('connection', socket => {
 	console.log('a user connected.');
 	socket.on('addUser', userId => {
+		console.log('add user');
 		addUser(userId, socket.id);
 		io.emit('getUsers', users);
 	});
