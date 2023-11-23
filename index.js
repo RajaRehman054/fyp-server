@@ -62,9 +62,7 @@ const getUser = userId => {
 	return users.find(user => user.userId === userId);
 };
 io.on('connection', socket => {
-	console.log('a user connected.');
 	socket.on('addUser', userId => {
-		console.log('add user');
 		addUser(userId, socket.id);
 		io.emit('getUsers', users);
 	});
@@ -85,9 +83,6 @@ io.on('connection', socket => {
 });
 //!Socket End
 
-app.get('/', (req, res) => {
-	res.sendFile(__dirname + '/index.html');
-});
 app.use('/users', User);
 app.use('/videos', Video);
 app.use('/api', Web);
