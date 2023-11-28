@@ -29,7 +29,7 @@ var Scheduler = require('./utils/scheduler');
 // ? Schedulers
 Scheduler.expireBid();
 Scheduler.jobChecker();
-// Scheduler.sendRecommendations();
+Scheduler.sendRecommendations();
 
 connection.connectDB();
 
@@ -48,7 +48,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-//?Socket Start
+//! Socket Start
 let users = [];
 const addUser = (userId, socketId) => {
 	users = users.filter(user => user.userId !== userId);
