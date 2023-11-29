@@ -82,8 +82,11 @@ exports.getVideos = asyncHandler(async (req, res) => {
 
 exports.getFollowersVideos = asyncHandler(async (req, res) => {
 	let array = [];
-	req.user.following.forEach(element => {
-		array.push(element.user);
+	req.user.following.forEach(async element => {
+		const info = await User.findById(element.user);
+		if (!info.buyer) {
+			array.push(element.user);
+		}
 	});
 	const videos = await Video.find({
 		owner: { $in: array },
