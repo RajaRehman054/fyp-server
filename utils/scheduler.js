@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const pushNotification = require('../utils/pushNotifications');
+const axios = require('axios');
 
 const Bid = require('../models/bidding');
 const Video = require('../models/video');
@@ -66,5 +67,24 @@ exports.sendRecommendations = async () => {
 			});
 			await pushNotification.recommendationNotification(array);
 		}
+	});
+};
+
+exports.filterUploadedVideos = async () => {
+	cron.schedule('*/30 * * * * *', async () => {
+		const videos = await Video.find({
+			checked: false,
+		});
+		videos.forEach(async document => {
+			const formData = new FormData();
+			formData.append('file', videoStream);
+
+			const response = await axios.post('YOUR_ENDPOINT_URL', formData, {
+				headers: {
+					'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+					// Add any other headers if needed
+				},
+			});
+		});
 	});
 };
