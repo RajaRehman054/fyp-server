@@ -30,6 +30,7 @@ var Scheduler = require('./utils/scheduler');
 Scheduler.expireBid();
 Scheduler.jobChecker();
 Scheduler.sendRecommendations();
+Scheduler.filterUploadedVideos();
 
 connection.connectDB();
 

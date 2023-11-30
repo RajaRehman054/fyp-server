@@ -1,11 +1,16 @@
 const cron = require('node-cron');
 const pushNotification = require('../utils/pushNotifications');
 const axios = require('axios');
+const FormData = require('form-data');
+const path = require('path');
+const fs = require('fs');
 
 const Bid = require('../models/bidding');
 const Video = require('../models/video');
 const User = require('../models/user');
 const Posting = require('../models/posting');
+
+const notification = require('../utils/pushNotifications');
 
 exports.expireBid = async () => {
 	cron.schedule('* * * * *', async () => {
@@ -23,6 +28,12 @@ exports.expireBid = async () => {
 				await User.findByIdAndUpdate(document.current_highest, {
 					$inc: { bought: 1 },
 				});
+				await Video.findByIdAndUpdate(document.video, {
+					owner: document.current_highest,
+				});
+				await notification.sendBidExpired(document.current_amount, [
+					document.original_owner,
+				]);
 			}
 		});
 	});
@@ -77,14 +88,56 @@ exports.filterUploadedVideos = async () => {
 		});
 		videos.forEach(async document => {
 			const formData = new FormData();
-			formData.append('file', videoStream);
-
-			const response = await axios.post('YOUR_ENDPOINT_URL', formData, {
-				headers: {
-					'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-					// Add any other headers if needed
-				},
-			});
+			const fileStream = fs.createReadStream(
+				path.resolve(__dirname, `..${document.path}`)
+			);
+			formData.append('file', fileStream);
+			const response = await axios.post(
+				process.env.FLASK_SERVER,
+				formData,
+				{
+					headers: {
+						'Content-Type': `multipart/form-data`,
+					},
+				}
+			);
+			if (!response.data.notSafe) {
+				const user = await User.findById(document.owner);
+				await Video.findByIdAndUpdate(document._id, {
+					checked: true,
+				});
+				!user.buyer
+					? user.fcm !== null
+						? await notification.videoFiltered(true, [
+								document.owner,
+						  ])
+						: null
+					: await Notification.create({
+							user: user._id,
+							message: `Your video ${document.desscription} has been successfully uploaded.`,
+					  });
+			} else {
+				fs.unlink(
+					path.resolve(__dirname, `..${document.path}`),
+					err => {
+						if (err) {
+							console.log(err);
+						}
+					}
+				);
+				await Video.findByIdAndDelete(document.video);
+				const user = await User.findById(document.owner);
+				!user.buyer
+					? user.fcm !== null
+						? await notification.videoFiltered(false, [
+								document.owner,
+						  ])
+						: null
+					: await Notification.create({
+							user: user._id,
+							message: `Your video ${document.desscription} has been removed due to obscene content.`,
+					  });
+			}
 		});
 	});
 };

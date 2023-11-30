@@ -335,10 +335,10 @@ exports.searchVideos = asyncHandler(async (req, res) => {
 		var users = await User.find({
 			username: { $regex: new RegExp(req.query.value, 'i') },
 		}).select('_id');
-		console.log(users);
 		const videos = await Video.find({
 			owner: { $in: users },
 			bought: false,
+			checked: true,
 		}).populate('owner');
 		return res.status(200).json(videos);
 	}
@@ -347,6 +347,7 @@ exports.searchVideos = asyncHandler(async (req, res) => {
 			$regex: new RegExp(req.query.value, 'i'),
 		},
 		bought: false,
+		checked: true,
 	}).populate('owner');
 	res.status(200).json(videos);
 });

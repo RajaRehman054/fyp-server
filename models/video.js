@@ -31,6 +31,7 @@ var Video = new Schema({
 		default: '',
 	},
 	tags: { type: String, default: '' },
+	checked: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('Video', Video);

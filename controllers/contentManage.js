@@ -76,6 +76,7 @@ exports.getVideos = asyncHandler(async (req, res) => {
 	const videos = await Video.find({
 		bought: false,
 		_id: { $nin: ids },
+		checked: true,
 	}).populate('owner');
 	res.status(201).json(videos);
 });
@@ -90,6 +91,7 @@ exports.getFollowersVideos = asyncHandler(async (req, res) => {
 	});
 	const videos = await Video.find({
 		owner: { $in: array },
+		checked: true,
 	}).populate('owner');
 	res.status(201).json(videos);
 });
@@ -100,7 +102,10 @@ exports.getMyVideos = asyncHandler(async (req, res) => {
 });
 
 exports.getOtherVideos = asyncHandler(async (req, res) => {
-	const videos = await Video.find({ owner: req.params.id }).populate('owner');
+	const videos = await Video.find({
+		owner: req.params.id,
+		checked: true,
+	}).populate('owner');
 	res.status(201).json(videos);
 });
 
