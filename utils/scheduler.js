@@ -116,7 +116,7 @@ exports.filterUploadedVideos = async () => {
 						: null
 					: await Notification.create({
 							user: user._id,
-							message: `Your video ${document.desscription} has been successfully uploaded.`,
+							message: `Your video ${document.description} has been successfully uploaded.`,
 					  });
 			} else {
 				fs.unlink(
@@ -135,7 +135,7 @@ exports.filterUploadedVideos = async () => {
 						: null
 					: await Notification.create({
 							user: user._id,
-							message: `Your video ${document.desscription} has been removed due to obscene content.`,
+							message: `Your video ${document.description} has been removed due to obscene content.`,
 					  });
 			}
 		});
