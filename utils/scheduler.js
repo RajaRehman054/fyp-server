@@ -31,9 +31,13 @@ exports.expireBid = async () => {
 				await Video.findByIdAndUpdate(document.video, {
 					owner: document.current_highest,
 				});
-				await notification.sendBidExpired(document.current_amount, [
-					document.original_owner,
-				]);
+				const user = await User.findById(document.original_owner);
+				user.fcm !== null
+					? await notification.sendBidExpired(
+							document.current_amount,
+							[user.fcm]
+					  )
+					: null;
 			}
 		});
 	});
@@ -108,9 +112,7 @@ exports.filterUploadedVideos = async () => {
 				});
 				!user.buyer
 					? user.fcm !== null
-						? await notification.videoFiltered(true, [
-								document.owner,
-						  ])
+						? await notification.videoFiltered(true, [user.fcm])
 						: null
 					: await Notification.create({
 							user: user._id,
@@ -129,9 +131,7 @@ exports.filterUploadedVideos = async () => {
 				const user = await User.findById(document.owner);
 				!user.buyer
 					? user.fcm !== null
-						? await notification.videoFiltered(false, [
-								document.owner,
-						  ])
+						? await notification.videoFiltered(false, [user.fcm])
 						: null
 					: await Notification.create({
 							user: user._id,

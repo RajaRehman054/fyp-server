@@ -63,7 +63,7 @@ exports.videoFiltered = async (safe, ids) => {
 			mutable_content: true,
 			notification: {
 				title: 'Video Update',
-				body: safe
+				body: !safe
 					? 'Your video contains obscene content, hence it has been removed.'
 					: 'Your video has been successfully uploaded.',
 				icon: 'myicon',
