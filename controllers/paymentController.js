@@ -20,7 +20,7 @@ exports.createPayment = async (req, res, next) => {
 		],
 		mode: 'payment',
 		success_url: `${process.env.SERVER_URL}/users/wallet/inc/${req.user._id}/${req.params.amount}`,
-		cancel_url: `${process.env.CLIENT_URL}/bids`,
+		cancel_url: `${process.env.CLIENT_URL}/`,
 	});
 	res.status(200).json({ url: session.url });
 };

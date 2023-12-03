@@ -9,6 +9,7 @@ const Bid = require('../models/bidding');
 const Video = require('../models/video');
 const User = require('../models/user');
 const Posting = require('../models/posting');
+const Notification = require('../models/notification');
 
 const notification = require('../utils/pushNotifications');
 
