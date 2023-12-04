@@ -225,6 +225,8 @@ exports.stopReceivingRequests = asyncHandler(async (req, res) => {
 });
 
 exports.acceptRequests = async (req, res) => {
+	let requestor = await User.findById(req.params.sid);
+	let posting = await Posting.findById(req.params.id);
 	if (req.query.reject === 'true') {
 		await Posting.updateOne(
 			{ _id: req.params.id, 'requests.user': req.params.sid },
@@ -237,11 +239,9 @@ exports.acceptRequests = async (req, res) => {
 			: null;
 		return res.status(204).json({});
 	}
-	let posting = await Posting.findById(req.params.id);
 	if (posting.price > req.user.wallet) {
 		return res.status(400).json({ message: 'Not enough balance.' });
 	}
-	let requestor = await User.findById(req.params.sid);
 	await Posting.updateOne(
 		{ _id: req.params.id, 'requests.user': req.params.sid },
 		{ $set: { 'requests.$.accept': true, 'requests.$.action': true } }

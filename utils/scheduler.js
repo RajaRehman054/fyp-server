@@ -14,7 +14,7 @@ const Notification = require('../models/notification');
 const notification = require('../utils/pushNotifications');
 
 exports.expireBid = async () => {
-	cron.schedule('* * * * *', async () => {
+	cron.schedule('*/10 * * * * **', async () => {
 		const totalBids = await Bid.find({
 			expired: false,
 		});
@@ -88,57 +88,70 @@ exports.sendRecommendations = async () => {
 
 exports.filterUploadedVideos = async () => {
 	cron.schedule('*/30 * * * * *', async () => {
-		const videos = await Video.find({
-			checked: false,
-		});
-		videos.forEach(async document => {
-			const formData = new FormData();
-			const fileStream = fs.createReadStream(
-				path.resolve(__dirname, `..${document.path}`)
-			);
-			formData.append('file', fileStream);
-			const response = await axios.post(
-				process.env.FLASK_SERVER,
-				formData,
-				{
-					headers: {
-						'Content-Type': `multipart/form-data`,
-					},
-				}
-			);
-			if (!response.data.notSafe) {
-				const user = await User.findById(document.owner);
-				await Video.findByIdAndUpdate(document._id, {
-					checked: true,
-				});
-				!user.buyer
-					? user.fcm !== null
-						? await notification.videoFiltered(true, [user.fcm])
-						: null
-					: await Notification.create({
-							user: user._id,
-							message: `Your video ${document.description} has been successfully uploaded.`,
-					  });
-			} else {
-				fs.unlink(
-					path.resolve(__dirname, `..${document.path}`),
-					err => {
-						if (err) {
-							console.log(err);
-						}
+		try {
+			const videos = await Video.find({
+				checked: false,
+			});
+			videos.forEach(async document => {
+				const formData = new FormData();
+				const fileStream = fs.createReadStream(
+					path.resolve(__dirname, `..${document.path}`)
+				);
+				console.log('here: ',`..${document.path}`)
+				formData.append('file', fileStream);
+				const response = await axios.post(
+					process.env.FLASK_SERVER,
+					formData,
+					{
+						headers: {
+							'Content-Type': `multipart/form-data`,
+						},
 					}
 				);
-				await Video.findByIdAndDelete(document.video);
-				const user = await User.findById(document.owner);
-				!user.buyer
-					? user.fcm !== null
-						? await notification.videoFiltered(false, [user.fcm])
-						: null
-					: await Notification.create({
-							user: user._id,
-							message: `Your video ${document.description} has been removed due to obscene content.`,
-					  });
-			}
-		});
+				if (!response.data.notSafe) {
+					const user = await User.findById(document.owner);
+					await Video.findByIdAndUpdate(document._id, {
+						checked: true,
+					});
+					!user.buyer
+						? user.fcm !== null
+							? await notification.videoFiltered(true, [user.fcm])
+							: null
+						: await Notification.create({
+								user: user._id,
+								message: `Your video ${document.description} has been successfully uploaded.`,
+						  });
+				} else {
+					fs.unlink(
+						path.resolve(__dirname, `..${document.path}`),
+						err => {
+							if (err) {
+								console.log(err);
+							}
+						}
+					);
+					fs.unlink(
+						path.resolve(__dirname, `..${document.thumbnail}`),
+						err => {
+							if (err) {
+								console.log(err);
+							}
+						}
+					);
+					await Video.findByIdAndDelete(document._id);
+					const user = await User.findById(document.owner);
+					!user.buyer
+						? user.fcm !== null
+							? await notification.videoFiltered(false, [user.fcm])
+							: null
+						: await Notification.create({
+								user: user._id,
+								message: `Your video ${document.description} has been removed due to obscene content.`,
+						  });
+				}
+			})
+		} catch (error) {
+			console.log(error)
+		}
 	});
 };

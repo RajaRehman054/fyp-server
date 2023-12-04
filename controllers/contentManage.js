@@ -82,16 +82,15 @@ exports.getVideos = asyncHandler(async (req, res) => {
 });
 
 exports.getFollowersVideos = asyncHandler(async (req, res) => {
-	let array = [];
-	req.user.following.forEach(async element => {
-		const info = await User.findById(element.user);
-		if (!info.buyer) {
-			array.push(element.user);
-		}
-	});
+	var array = [];
+	for( let i = 0 ; i < req.user.following.length; i++){
+		const info = await User.findById(req.user.following[i].user);
+		array.push(info._id);
+	}
 	const videos = await Video.find({
 		owner: { $in: array },
 		checked: true,
+		bought: false,
 	}).populate('owner');
 	res.status(201).json(videos);
 });
