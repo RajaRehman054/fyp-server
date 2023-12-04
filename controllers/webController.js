@@ -102,11 +102,18 @@ exports.createBid = asyncHandler(async (req, res) => {
 	res.status(201).json({ message: 'Bid created' });
 });
 
-exports.updateBid = asyncHandler(async (req, res) => {
+exports.updateBid = async (req, res) => {
 	let bid = await Bid.findById(req.params.id);
 	let data = await User.findById(bid.original_owner);
 	if (req.body.amount <= bid.current_amount) {
 		return res.status(400).json({ success: false });
+	}
+	for(let i=0;i<bid.list.length;i++){
+		if(bid.list[i].user.equals(req.user._id) && bid.list[i].paid === false){
+			if(req.user.wallet+bid.list[i].amount<req.body.amount){
+				return res.status(400).json({ success2: false });
+			}
+		}
 	}
 	await Notification.create({
 		user: bid.current_highest,
@@ -132,7 +139,7 @@ exports.updateBid = asyncHandler(async (req, res) => {
 		$push: { list: { user: req.user.id, amount: req.body.amount } },
 	});
 	res.status(201).json({ message: 'bid added' });
-});
+};
 
 exports.getInvolvedBids = asyncHandler(async (req, res) => {
 	let data = [];
