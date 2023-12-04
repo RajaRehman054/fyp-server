@@ -103,6 +103,7 @@ exports.createBid = asyncHandler(async (req, res) => {
 });
 
 exports.updateBid =  asyncHandler(async (req, res) => {
+	let check = true;
 	let bid = await Bid.findById(req.params.id);
 	let data = await User.findById(bid.original_owner);
 	if (req.body.amount <= bid.current_amount) {
@@ -113,6 +114,12 @@ exports.updateBid =  asyncHandler(async (req, res) => {
 			if(req.user.wallet+bid.list[i].amount<req.body.amount){
 				return res.status(400).json({ success2: false });
 			}
+		}
+		check = false;
+	}
+	if(!check){
+		if(req.user.wallet < req.body.amount){
+			return res.status(400).json({ success2: false });
 		}
 	}
 	await Notification.create({
