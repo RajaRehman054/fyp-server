@@ -97,7 +97,7 @@ exports.filterUploadedVideos = async () => {
 				const fileStream = fs.createReadStream(
 					path.resolve(__dirname, `..${document.path}`)
 				);
-				console.log('here: ',`..${document.path}`)
+				console.log('here: ', `..${document.path}`);
 				formData.append('file', fileStream);
 				const response = await axios.post(
 					process.env.FLASK_SERVER,
@@ -142,16 +142,18 @@ exports.filterUploadedVideos = async () => {
 					const user = await User.findById(document.owner);
 					!user.buyer
 						? user.fcm !== null
-							? await notification.videoFiltered(false, [user.fcm])
+							? await notification.videoFiltered(false, [
+									user.fcm,
+							  ])
 							: null
 						: await Notification.create({
 								user: user._id,
 								message: `Your video ${document.description} has been removed due to obscene content.`,
 						  });
 				}
-			})
+			});
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 		}
 	});
 };

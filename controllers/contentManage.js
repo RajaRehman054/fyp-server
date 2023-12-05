@@ -83,7 +83,7 @@ exports.getVideos = asyncHandler(async (req, res) => {
 
 exports.getFollowersVideos = asyncHandler(async (req, res) => {
 	var array = [];
-	for( let i = 0 ; i < req.user.following.length; i++){
+	for (let i = 0; i < req.user.following.length; i++) {
 		const info = await User.findById(req.user.following[i].user);
 		array.push(info._id);
 	}
