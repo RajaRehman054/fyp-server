@@ -91,13 +91,16 @@ exports.filterUploadedVideos = async () => {
 		try {
 			const videos = await Video.find({
 				checked: false,
+				checking: false,
 			});
 			videos.forEach(async document => {
 				const formData = new FormData();
 				const fileStream = fs.createReadStream(
 					path.resolve(__dirname, `..${document.path}`)
 				);
-				console.log('here: ', `..${document.path}`);
+				await Video.findByIdAndUpdate(document._id, {
+					checking: true,
+				});
 				formData.append('file', fileStream);
 				const response = await axios.post(
 					process.env.FLASK_SERVER,
